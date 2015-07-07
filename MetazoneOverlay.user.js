@@ -104,6 +104,14 @@
     // win32: find2 media/maps -name objects.lua -exec grep -ihPr "((townzone)|(trailerpark))" \"{}\" ; > newzones.txt
     // linux: find media/maps -name objects.lua -exec grep -ihPr "((townzone)|(trailerpark))" {} \; > newzones.txt
     // replace '=' with ';', replace /}$/ with /}/, and wrap in an array.
+	
+	// strip old data from file
+	// grep -vhP "\{\s*name.*type.*x.*y.*z.*width.*height.*\}" MetazoneOverlay.user.js > MetazoneOverlay.user.js
+	// grab new data and format it
+	// find2 media/maps -name objects.lua -follow -type f -exec grep -ihP "((townzone)|(trailerpark))" \"{}\" ; | sed "s/=/:/g" | sed "s/}$/},/g" | sed "s/^[[:space:]]*//" | awk " { print \"       \",$0; }" > metazones
+	// insert new data into file
+	// sed -i "/var metazones = \[/r metazones" MetazoneOverlay.user.js
+
     var metazones = [
         { name : "", type : "TownZone", x : 11658, y : 8291, z : 0, width : 20, height : 26 },
         { name : "", type : "TownZone", x : 11676, y : 8286, z : 0, width : 2, height : 5 },
