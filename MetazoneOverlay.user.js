@@ -24,7 +24,7 @@
 
     function injectAndLoadSvgOverlay(callback)
     {
-		// TODO: use an actual host for this
+        // TODO: use an actual host for this
         var svgScript = document.createElement('script');
         svgScript.src = "//openseadragon.github.io/svg-overlay/openseadragon-svg-overlay.js";
         svgScript.addEventListener('load', function() {
