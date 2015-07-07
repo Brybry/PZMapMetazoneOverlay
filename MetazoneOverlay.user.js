@@ -91,6 +91,8 @@
         
         $("#btnTogglePOI").parent().before($btnToggleMetazones);
         $btnToggleMetazones.wrap("<li></li>").show();
+
+        $("svg").insertBefore($("svg").prev());
        
         // resize svg overlay on window resize
         $(w).resize(function() { overlay.resize(); });
