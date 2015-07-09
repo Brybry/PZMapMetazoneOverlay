@@ -40,22 +40,11 @@
     var viewer,
         d3,
         tileToPixel;
-    //var maxTries = 20;
     
     function load() {
         viewer = w.viewer;
         d3 = w.d3;
         tileToPixel = w.tileToPixel;
-        
-        /*if (!viewer || !d3 || !tileToPixel || !viewer.viewport)
-        {
-            console.log("Status: ", (!viewer) ? "No viewer": "viewer", (!d3) ? "No d3" : "d3", (!tileToPixel) ? "No tToP" : "tToP");
-            maxTries--;
-            if (maxTries <= 0)
-                return;
-            setTimeout(load,1000);
-            return;
-        }*/
         
         // Load/grab d3 svg object
         var overlay = viewer.svgOverlay();
@@ -66,16 +55,16 @@
         .y(function(d) { return d.y; })
         .interpolate("linear-closed");
         
-        // create metazone d3 polygons
+        var poly = [,,,,]; // initialize 4 element temp array
+		// create metazone d3 polygons
         for (var i = 0; i < metazones.length; i++)
         {
-            var poly = [];
-            poly.push(pixelToPercent(tileToPixel(metazones[i].x, metazones[i].y)));
-            poly.push(pixelToPercent(tileToPixel(metazones[i].x, metazones[i].y + metazones[i].height)));
-            poly.push(pixelToPercent(tileToPixel(metazones[i].x + metazones[i].width, metazones[i].y + metazones[i].height)));
-            poly.push(pixelToPercent(tileToPixel(metazones[i].x + metazones[i].width, metazones[i].y)));
+            poly[0] = pixelToPercent(tileToPixel(metazones[i].x, metazones[i].y));
+            poly[1] = pixelToPercent(tileToPixel(metazones[i].x, metazones[i].y + metazones[i].height));
+            poly[2] = pixelToPercent(tileToPixel(metazones[i].x + metazones[i].width, metazones[i].y + metazones[i].height));
+            poly[3] = pixelToPercent(tileToPixel(metazones[i].x + metazones[i].width, metazones[i].y));
 
-            var d3Poly = d3.select(overlay.node()).append("path")
+            d3.select(overlay.node()).append("path")
             .attr("id", "metazone_"+i)
             .attr("class", "metazone")
             .attr("d", lineFunction(poly))
@@ -100,7 +89,8 @@
         
     // old
     // grep -ihPr "((townzone)|(trailerpark))" media\lua\server\metazones\*.lua
-    // new
+    
+	// new
     // win32: find2 media/maps -name objects.lua -exec grep -ihPr "((townzone)|(trailerpark))" \"{}\" ; > newzones.txt
     // linux: find media/maps -name objects.lua -exec grep -ihPr "((townzone)|(trailerpark))" {} \; > newzones.txt
     // replace '=' with ';', replace /}$/ with /}/, and wrap in an array.
