@@ -40,11 +40,100 @@
     var viewer,
         d3,
         tileToPixel;
+    var maxTries = 20;
     
     function load() {
         viewer = w.viewer;
         d3 = w.d3;
         tileToPixel = w.tileToPixel;
+        
+        if (!viewer.viewport && maxTries-- > 0)
+        {
+            console.log("Couldn't find viewport, waiting to load. Tries left: ", maxTries);
+            setTimeout(load, 1000);
+            return;
+        }
+            
+            
+        // fix typo
+        $("[aria-expande]").each(function(o,i) { $(i).attr("aria-expanded", $(i).attr("d")); });
+        
+        // create some localstorage preferences just for me
+        if (localStorage)
+        {
+            // could use $.jStorage but not really a fan
+            if (localStorage.getItem("prefDoubleClick") === 1)
+            {
+                viewer.gestureSettingsMouse.clickToZoom = false;
+                viewer.gestureSettingsMouse.dblClickToZoom = true;
+            }
+            
+            if (localStorage.getItem("prefAccordion"))
+            {   
+                /*$(".collapse.in").collapse("hide");
+                try
+                {
+                    var list = JSON.parse(localStorage.getItem("prefAccordion"));
+                    if (Object.prototype.toString.call(list) === "[object Array]")
+                    {
+                        for (var i = 0; i < list.length; i++)
+                        {
+                            $("#"+list[i]).collapse("show");                        
+                        }
+                    }
+                }
+                catch (e)
+                {
+                    console.log("Parse error:", e);
+                }*/
+                try {
+                    //$(".collapse.in").collapse({ toggle: false, parent: "#accordion" });
+                    $("#"+localStorage.getItem("prefAccordion")).collapse({ toggle: true, parent: "#accordion" });
+                }
+                catch (e)
+                {
+                    console.log("Parse error:", e)
+                }
+            }
+        }
+
+        $(".collapse").on("shown.bs.collapse", function(event){
+            if (!event || !event.currentTarget || !event.currentTarget.id || event.currentTarget.id === "")
+                return;
+               
+            if (localStorage)
+            {
+                /*var list = [];
+                console.log("TEST1", $(".collapse.in"));
+                $(".collapse.in").each(function(o,i) {
+                    list.push(i.id);
+                });
+                localStorage.setItem("prefAccordion", JSON.stringify(list));
+                */
+                localStorage.setItem("prefAccordion", event.currentTarget.id);
+            }
+        });
+        
+        $(".collapse").on("hidden.bs.collapse", function(event){
+            if (!event || !event.currentTarget || !event.currentTarget.id || event.currentTarget.id === "")
+                return;
+               
+            if (localStorage)
+            {
+                /*var list = [];
+                console.log("TEST2", $(".collapse.in"));
+                $(".collapse.in").each(function(o,i) {
+                    list.push(i.id);
+                });
+                localStorage.setItem("prefAccordion", JSON.stringify(list));
+                */
+                // localStorage.setItem("prefAccordion", event.currentTarget.id);
+                if (localStorage.getItem("prefAccordion") == event.currentTarget.id)
+                    localStorage.removeItem("prefAccordion");
+                    
+                //localStorage.setItem("prefAccordion", event.currentTarget.id);
+            }
+        });
         
         // Load/grab d3 svg object
         var overlay = viewer.svgOverlay();
@@ -55,14 +144,15 @@
         .y(function(d) { return d.y; })
         .interpolate("linear-closed");
         
-        var poly = [,,,,]; // initialize 4 element temp array
-		// create metazone d3 polygons
+        var poly = [,,,,]; // initialize 4 element array
+
+        // create metazone d3 polygons
         for (var i = 0; i < metazones.length; i++)
         {
-            poly[0] = pixelToPercent(tileToPixel(metazones[i].x, metazones[i].y));
-            poly[1] = pixelToPercent(tileToPixel(metazones[i].x, metazones[i].y + metazones[i].height));
-            poly[2] = pixelToPercent(tileToPixel(metazones[i].x + metazones[i].width, metazones[i].y + metazones[i].height));
-            poly[3] = pixelToPercent(tileToPixel(metazones[i].x + metazones[i].width, metazones[i].y));
+            poly[0] = (pixelToPercent(tileToPixel(metazones[i].x, metazones[i].y)));
+            poly[1] = (pixelToPercent(tileToPixel(metazones[i].x, metazones[i].y + metazones[i].height)));
+            poly[2] = (pixelToPercent(tileToPixel(metazones[i].x + metazones[i].width, metazones[i].y + metazones[i].height)));
+            poly[3] = (pixelToPercent(tileToPixel(metazones[i].x + metazones[i].width, metazones[i].y)));
 
             d3.select(overlay.node()).append("path")
             .attr("id", "metazone_"+i)
@@ -90,18 +180,10 @@
     // old
     // grep -ihPr "((townzone)|(trailerpark))" media\lua\server\metazones\*.lua
     
-	// new
+    // new
     // win32: find2 media/maps -name objects.lua -exec grep -ihPr "((townzone)|(trailerpark))" \"{}\" ; > newzones.txt
     // linux: find media/maps -name objects.lua -exec grep -ihPr "((townzone)|(trailerpark))" {} \; > newzones.txt
     // replace '=' with ';', replace /}$/ with /}/, and wrap in an array.
-	
-	// strip old data from file
-	// grep -vhP "\{\s*name.*type.*x.*y.*z.*width.*height.*\}" MetazoneOverlay.user.js > MetazoneOverlay.user.js
-	// grab new data and format it
-	// find2 media/maps -name objects.lua -follow -type f -exec grep -ihP "((townzone)|(trailerpark))" \"{}\" ; | sed "s/=/:/g" | sed "s/}$/},/g" | sed "s/^[[:space:]]*//" | awk " { print \"       \",$0; }" > metazones
-	// insert new data into file
-	// sed -i "/var metazones = \[/r metazones" MetazoneOverlay.user.js
-
     var metazones = [
         { name : "", type : "TownZone", x : 11658, y : 8291, z : 0, width : 20, height : 26 },
         { name : "", type : "TownZone", x : 11676, y : 8286, z : 0, width : 2, height : 5 },
